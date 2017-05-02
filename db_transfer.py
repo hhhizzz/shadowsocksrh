@@ -26,18 +26,6 @@ class DbTransfer(object):
         self.pull_ok = False  # 记录是否已经拉出过数据
         self.mu_ports = {}
         self.user_pass = {}  # 记录更新此用户流量时被跳过多少次
-        self.cfg = {}
-        self.load_cfg()
-
-    def load_cfg(self):
-        import json
-        config_path = get_config().MYSQL_CONFIG
-        cfg = None
-        with open(config_path, 'rb+') as f:
-            cfg = json.loads(f.read().decode('utf8'))
-
-        if cfg:
-            self.cfg.update(cfg)
 
     def update_all_user(self, dt_transfer):
         update_transfer = {}
@@ -83,8 +71,10 @@ class DbTransfer(object):
         '''
 
         # 测试用的两个用户信息
-        rows =[{'enable': 1, 'd': 8888719L, 'passwd': u'gfzC8h', 'transfer_enable': 5467275264L,
-                'u': 117218L, 'port': 1025L}, {'enable': 1, 'd': 2112637L, 'passwd': u'b5QiRt', 'transfer_enable': 5368709120L, 'u': 8752L, 'port': 1026L}]
+        rows = [{'enable': 1, 'd': 8888719L, 'passwd': u'gfzC8h', 'transfer_enable': 5467275264L,
+                 'u': 117218L, 'port': 1025L},
+                {'enable': 1, 'd': 2112637L, 'passwd': u'b5QiRt', 'transfer_enable': 5368709120L, 'u': 8752L,
+                 'port': 1026L}]
 
         if not rows:
             logging.warn('no user in db')
@@ -143,17 +133,13 @@ class DbTransfer(object):
     def del_server_out_of_bound_safe(self, last_rows, rows):
         # 停止超流量的服务
         # 启动没超流量的服务
-        try:
-            switchrule = importloader.load('switchrule')
-        except Exception as e:
-            logging.error('load switchrule.py fail')
         cur_servers = {}
         new_servers = {}
         allow_users = {}
         mu_servers = {}
         for row in rows:
             try:
-                allow = switchrule.isTurnOn(row) and row['enable'] == 1 and row['u'] + row['d'] < row['transfer_enable']
+                allow = row['enable'] == 1 and row['u'] + row['d'] < row['transfer_enable']
             except Exception as e:
                 allow = False
 
@@ -288,19 +274,18 @@ class DbTransfer(object):
                 ServerPool.get_instance().cb_del_server(port)
 
     @staticmethod
-    def thread_db(obj):
+    def thread_db():
         '''
         :param obj: 就是DbTransfer
         
         线程的入口函数
         '''
         import socket
-        import time
         global db_instance
         timeout = 60
         socket.setdefaulttimeout(timeout)
         last_rows = []
-        db_instance = obj()
+        db_instance = DbTransfer()
         ServerPool.get_instance()
         shell.log_shadowsocks_version()
 
@@ -314,7 +299,6 @@ class DbTransfer(object):
         try:
             while True:
                 load_config()
-                db_instance.load_cfg()
                 try:
                     db_instance.push_db_all_user()
                     if rows:
@@ -348,5 +332,3 @@ class DbTransfer(object):
     def thread_db_stop():
         global db_instance
         db_instance.event.set()
-
-

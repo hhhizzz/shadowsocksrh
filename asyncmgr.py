@@ -22,19 +22,14 @@
 # SOFTWARE.
 
 import time
-import os
 import socket
-import struct
-import re
 import logging
-from shadowsocks import common
-from shadowsocks import lru_cache
 from shadowsocks import eventloop
 import server_pool
-import Config
+from config import Config
+
 
 class ServerMgr(object):
-
     def __init__(self):
         self._loop = None
         self._request_id = 1

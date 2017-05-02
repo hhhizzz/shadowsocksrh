@@ -27,7 +27,6 @@ if __name__ == '__main__':
 
 import db_transfer
 from shadowsocks import shell
-from configloader import load_config, get_config
 
 
 class MainThread(threading.Thread):
@@ -37,7 +36,7 @@ class MainThread(threading.Thread):
         self.obj = obj
 
     def run(self):
-        self.obj.thread_db(self.obj)
+        self.obj.thread_db()
 
     def stop(self):
         self.obj.thread_db_stop()
@@ -46,8 +45,7 @@ class MainThread(threading.Thread):
 def main():
     shell.check_python()
 
-    if get_config().API_INTERFACE == 'sspanelv2':
-        thread = MainThread(db_transfer.DbTransfer)
+    thread = MainThread(db_transfer.DbTransfer)
 
     thread.start()
     try:

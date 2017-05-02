@@ -23,7 +23,6 @@
 
 import logging
 import struct
-import os
 from shadowsocks import shell, eventloop, tcprelay, udprelay, asyncdns, common
 import threading
 from socket import *
@@ -63,6 +62,10 @@ class ServerPool(object):
 
     @staticmethod
     def get_instance():
+        '''
+        单例设计模式
+        :return: 全局唯一的对象
+        '''
         if ServerPool.instance is None:
             ServerPool.instance = ServerPool()
         return ServerPool.instance

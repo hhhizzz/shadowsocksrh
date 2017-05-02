@@ -1,11 +1,4 @@
-﻿# Config
-API_INTERFACE = 'sspanelv2'  # mudbjson, sspanelv2, sspanelv3, sspanelv3ssr, glzjinmod, legendsockssr, muapiv2(not support)
+﻿# Config 程序更新时间
+
 UPDATE_TIME = 10
-SERVER_PUB_ADDR = '127.0.0.1'  # mujson_mgr need this to generate ssr link
 
-
-# Mysql
-MYSQL_CONFIG = 'usermysql.json'
-
-# API
-MUAPI_CONFIG = 'usermuapi.json'
