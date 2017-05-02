@@ -59,13 +59,10 @@ class DbTransfer(object):
                     ' END, t = ' + str(int(last_time)) + \
                     ' WHERE port IN (%s)' % query_sub_in
 
-        traffic_sql = "INSERT INTO `user_traffic_log` (`id`, `user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (NULL, '" + \
-							str(self.port_uid_table[id]) + "', '" + str(transfer[0]) + "', '" + str(transfer[1]) + "', '" + \
-							str(1) + "', '" + 'mul' + "', '" + \
-							self.traffic_format((transfer[0] + transfer[1])) + "', unix_timestamp()); "
+        traffic = self.traffic_format((transfer[0] + transfer[1]))
 
         logging.info(query_sql)
-        logging.info(traffic_sql)
+        logging.info(traffic)
 
         return update_transfer
 
@@ -340,3 +337,12 @@ class DbTransfer(object):
     def thread_db_stop():
         global db_instance
         db_instance.event.set()
+
+    def traffic_format(self, traffic):
+        if traffic < 1024 * 8:
+            return str(int(traffic)) + "B";
+
+        if traffic < 1024 * 1024 * 2:
+            return str(round((traffic / 1024.0), 2)) + "KB";
+
+        return str(round((traffic / 1048576.0), 2)) + "MB";
