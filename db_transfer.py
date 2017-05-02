@@ -46,8 +46,6 @@ class DbTransfer(object):
             if id in self.user_pass:
                 del self.user_pass[id]
 
-            query_sub_when += ' WHEN %s THEN u+%s' % (id, int(transfer[0] * self.cfg["transfer_mul"]))
-            query_sub_when2 += ' WHEN %s THEN d+%s' % (id, int(transfer[1] * self.cfg["transfer_mul"]))
             update_transfer[id] = transfer
 
             if query_sub_in is not None:
@@ -61,10 +59,12 @@ class DbTransfer(object):
                     ' END, d = CASE port' + query_sub_when2 + \
                     ' END, t = ' + str(int(last_time)) + \
                     ' WHERE port IN (%s)' % query_sub_in
+
         traffic_sql = "INSERT INTO `user_traffic_log` (`id`, `user_id`, `u`, `d`, `node_id`, `rate`, `traffic`, `log_time`) VALUES (NULL, '" + \
 							str(self.port_uid_table[id]) + "', '" + str(transfer[0]) + "', '" + str(transfer[1]) + "', '" + \
-							str(self.cfg["node_id"]) + "', '" + str(self.cfg["transfer_mul"]) + "', '" + \
-							self.traffic_format((transfer[0] + transfer[1]) * self.cfg["transfer_mul"]) + "', unix_timestamp()); "
+							str(1) + "', '" + 'mul' + "', '" + \
+							self.traffic_format((transfer[0] + transfer[1])) + "', unix_timestamp()); "
+
         logging.info(query_sql)
         logging.info(traffic_sql)
 
