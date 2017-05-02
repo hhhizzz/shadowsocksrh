@@ -49,20 +49,9 @@ class DbTransfer(object):
 
             update_transfer[id] = transfer
 
-            if query_sub_in is not None:
-                query_sub_in += ',%s' % id
-            else:
-                query_sub_in = '%s' % id
+            traffic = self.traffic_format('the port' + query_sub_in + 'use'(transfer[0] + transfer[1]))
 
-        query_sql = query_head + ' SET u = CASE port' + query_sub_when + \
-                    ' END, d = CASE port' + query_sub_when2 + \
-                    ' END, t = ' + str(int(last_time)) + \
-                    ' WHERE port IN (%s)' % query_sub_in
-
-        traffic = self.traffic_format((transfer[0] + transfer[1]))
-
-        logging.info(query_sql)
-        logging.info(traffic)
+            logging.info(traffic)
 
         return update_transfer
 
