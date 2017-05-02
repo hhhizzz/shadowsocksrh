@@ -49,7 +49,7 @@ class DbTransfer(object):
 
             update_transfer[id] = transfer
 
-            traffic = self.traffic_format('the port' + query_sub_in + 'use'(transfer[0] + transfer[1]))
+            traffic = 'the port' + query_sub_in + 'use' + self.traffic_format(transfer[0] + transfer[1])
 
             logging.info(traffic)
 
