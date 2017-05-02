@@ -28,6 +28,7 @@ class DbTransfer(object):
         self.user_pass = {}  # 记录更新此用户流量时被跳过多少次
 
     def update_all_user(self, dt_transfer):
+        logging.info('update_all_user')
         update_transfer = {}
 
         query_head = 'UPDATE user'
@@ -74,7 +75,7 @@ class DbTransfer(object):
         '''
         :return: 获得用户信息
         '''
-
+        logging.info('pull_db_all_user')
         # 测试用的两个用户信息
         rows = [{'enable': 1, 'd': 8888719L, 'passwd': u'gfzC8h', 'transfer_enable': 5467275264L,
                  'u': 117218L, 'port': 1025L},
@@ -86,6 +87,7 @@ class DbTransfer(object):
         return rows
 
     def push_db_all_user(self):
+        logging.info('push_db_all_user')
         if self.pull_ok is False:
             return
         # 更新用户流量到数据库
@@ -136,6 +138,7 @@ class DbTransfer(object):
         self.force_update_transfer = set()
 
     def del_server_out_of_bound_safe(self, last_rows, rows):
+        logging.info('del_server_out_of_bound_safe')
         # 停止超流量的服务
         # 启动没超流量的服务
         cur_servers = {}
@@ -285,6 +288,7 @@ class DbTransfer(object):
         
         线程的入口函数
         '''
+        logging.info('thread_db')
         import socket
         global db_instance
         timeout = 60
@@ -304,6 +308,7 @@ class DbTransfer(object):
         try:
             while True:
                 load_config()
+                logging.info('while True')
                 try:
                     db_instance.push_db_all_user()
                     if rows:
