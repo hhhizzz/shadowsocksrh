@@ -21,7 +21,7 @@ class DbTransfer(object):
         self.last_get_transfer = {}  # 上一次的实际流量
         self.last_update_transfer = {}  # 上一次更新到的流量（小于等于实际流量）
         self.force_update_transfer = set()  # 强制推入数据库的ID
-        self.port_uid_table = {}  # 端口到uid的映射（仅v3以上有用）
+        self.users = []
         self.onlineuser_cache = lru_cache.LRUCache(timeout=60 * 30)  # 用户在线状态记录
         self.pull_ok = False  # 记录是否已经拉出过数据
         self.mu_ports = {}
@@ -49,7 +49,8 @@ class DbTransfer(object):
 
             update_transfer[id] = transfer
 
-            traffic = 'the port ' + str(id) + ' use' + self.traffic_format(transfer[0] + transfer[1])
+            user_traffic = 'the port is for user: '+self.users[self.users['port']==id]['username']
+            traffic = 'the port ' + str(id) + ' use ' + self.traffic_format(transfer[0] + transfer[1])
 
             logging.info(traffic)
 
@@ -61,13 +62,15 @@ class DbTransfer(object):
         '''
         logging.info('pull_db_all_user')
         # 测试用的两个用户信息
-        rows = [{'enable': 1, 'd': 8888719L, 'passwd': u'gfzC8h', 'transfer_enable': 5467275264L,
+        rows = [{'username':'yzzjjyy1','enable': 1, 'd': 8888719L, 'passwd': u'gfzC8h', 'transfer_enable': 5467275264L,
                  'u': 117218L, 'port': 1025L},
-                {'enable': 1, 'd': 2112637L, 'passwd': u'b5QiRt', 'transfer_enable': 5368709120L, 'u': 8752L,
+                {'username':'yzzjjyy2','enable': 1, 'd': 2112637L, 'passwd': u'b5QiRt', 'transfer_enable': 5368709120L, 'u': 8752L,
                  'port': 1026L}]
 
         if not rows:
             logging.warn('no user in db')
+
+        self.users = rows
         return rows
 
     def push_db_all_user(self):

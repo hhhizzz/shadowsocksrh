@@ -2,3 +2,4 @@
 
 UPDATE_TIME = 10
 
+SERVER_ADDRESS = r'http://xunix.me/ss'
