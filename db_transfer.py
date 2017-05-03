@@ -55,6 +55,7 @@ class DbTransfer(object):
                 del self.user_pass[id]
 
             update_transfer[id] = transfer
+            self.logger.debug(str(id))
 
             for user in self.users:
                 if user['port'] == id:
@@ -296,7 +297,7 @@ class DbTransfer(object):
 
         try:
             import resource
-            self.logger.info(
+            logging.info(
                 'current process RLIMIT_NOFILE resource: soft %d hard %d' % resource.getrlimit(resource.RLIMIT_NOFILE))
         except:
             pass
@@ -323,7 +324,7 @@ class DbTransfer(object):
                     last_rows = rows
                 except Exception as e:
                     trace = traceback.format_exc()
-                    self.logger.error(trace)
+                    logging.error(trace)
                 # self.logger.warn('db thread except:%s' % e)
                 if db_instance.event.wait(get_config().UPDATE_TIME) or not ServerPool.get_instance().thread.is_alive():
                     break

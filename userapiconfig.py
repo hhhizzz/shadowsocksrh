@@ -6,4 +6,4 @@ UPDATE_TIME = 10
 SERVER_ADDRESS = r'http://xunix.me/ss'
 
 # 是否输出调试信息
-debug = False
+debug = True
