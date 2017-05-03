@@ -49,13 +49,11 @@ class DbTransfer(object):
 
             update_transfer[id] = transfer
 
-            for item in self.users:
-                if item['port'] == id:
-                    logging.info('the port is for user: '+str(item['username']))
+            for user in self.users:
+                if user['port'] == id:
+                    traffic = 'the user '+user['username']+'('+user['port']+') use '+self.traffic_format(transfer[0] + transfer[1])
+                    logging.info(traffic)
                     break
-
-            traffic = 'the port ' + str(id) + ' use ' + self.traffic_format(transfer[0] + transfer[1])
-            logging.info(traffic)
 
         return update_transfer
 
