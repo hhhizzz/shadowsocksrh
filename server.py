@@ -51,7 +51,7 @@ def main():
              format = '%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                       datefmt = '%a, %d %b %Y %H:%M:%S',
                                 filename = 'log.txt',
-                                           filemode = 'w')
+                                           filemode = 'a')
 
     thread = MainThread(db_transfer.DbTransfer)
 

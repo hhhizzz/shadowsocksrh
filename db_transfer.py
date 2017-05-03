@@ -55,7 +55,6 @@ class DbTransfer(object):
                 del self.user_pass[id]
 
             update_transfer[id] = transfer
-            self.logger.debug(str(id))
 
             for user in self.users:
                 if user['port'] == id:

@@ -29,6 +29,7 @@ import random
 import platform
 import threading
 from collections import deque
+from configloader import load_config, get_config
 
 from shadowsocks import encrypt, obfs, eventloop, shell, common, lru_cache
 from shadowsocks.common import pre_parse_header, parse_header
@@ -1129,6 +1130,13 @@ class TCPRelay(object):
         self.server_connections = 0
         self.protocol_data = obfs.obfs(config['protocol']).init_data()
         self.obfs_data = obfs.obfs(config['obfs']).init_data()
+        self.logger = logging.getLogger(__name__)
+        if get_config().debug:
+            self.logger.setLevel(logging.DEBUG)
+        fh = logging.FileHandler('log.txt', mode='a', encoding=None, delay=False)
+        formater = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s')
+        fh.setFormatter(formater)
+        self.logger.addHandler(fh)
 
         if config.get('connect_verbose_info', 0) > 0:
             common.connect_log = logging.info
@@ -1275,13 +1283,13 @@ class TCPRelay(object):
     def update_stat(self, port, stat_dict, val):
         newval = stat_dict.get(0, 0) + val
         stat_dict[0] = newval
-        logging.debug('port %d connections %d' % (port, newval))
+        self.logger.debug('port %d connections %d' % (port, newval))
         connections_step = 25
         if newval >= stat_dict.get(-1, 0) + connections_step:
-            logging.info('port %d connections up to %d' % (port, newval))
+            self.logger.info('port %d connections up to %d' % (port, newval))
             stat_dict[-1] = stat_dict.get(-1, 0) + connections_step
         elif newval <= stat_dict.get(-1, 0) - connections_step:
-            logging.info('port %d connections down to %d' % (port, newval))
+            self.logger.info('port %d connections down to %d' % (port, newval))
             stat_dict[-1] = stat_dict.get(-1, 0) - connections_step
 
     def stat_add(self, local_addr, val):
