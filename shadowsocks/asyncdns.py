@@ -23,12 +23,20 @@ import socket
 import struct
 import re
 import logging
+from configloader import get_config
 
 if __name__ == '__main__':
     import sys
     import inspect
     file_path = os.path.dirname(os.path.realpath(inspect.getfile(inspect.currentframe())))
     sys.path.insert(0, os.path.join(file_path, '../'))
+    logger = logging.getLogger(__name__)
+    if get_config().debug:
+        logger.setLevel(logging.DEBUG)
+    fh = logging.FileHandler('log.txt', mode='a', encoding=None, delay=False)
+    formater = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s')
+    fh.setFormatter(formater)
+    logger.addHandler(fh)
 
 from shadowsocks import common, lru_cache, eventloop, shell
 
@@ -278,10 +286,24 @@ class DNSResolver(object):
         self._servers = None
         self._parse_resolv()
         self._parse_hosts()
+        self.logger = logging.getLogger(__name__)
+        if get_config().debug:
+            self.logger.setLevel(logging.DEBUG)
+        fh = logging.FileHandler('log.txt', mode='a', encoding=None, delay=False)
+        formater = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s')
+        fh.setFormatter(formater)
+        self.logger.addHandler(fh)
         # TODO monitor hosts change and reload hosts
         # TODO parse /etc/gai.conf and follow its rules
 
     def _parse_resolv(self):
+        self.logger = logging.getLogger(__name__)
+        if get_config().debug:
+            self.logger.setLevel(logging.DEBUG)
+        fh = logging.FileHandler('log.txt', mode='a', encoding=None, delay=False)
+        formater = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s')
+        fh.setFormatter(formater)
+        self.logger.addHandler(fh)
         self._servers = []
         try:
             with open('dns.conf', 'rb') as f:
@@ -321,7 +343,7 @@ class DNSResolver(object):
                 pass
         if not self._servers:
             self._servers = [('8.8.4.4', 53), ('8.8.8.8', 53)]
-        logging.info('dns server: %s' % (self._servers,))
+        self.logger.info('dns server: %s' % (self._servers,))
 
     def _parse_hosts(self):
         etc_path = '/etc/hosts'
@@ -411,7 +433,7 @@ class DNSResolver(object):
         if sock != self._sock:
             return
         if event & eventloop.POLL_ERR:
-            logging.error('dns socket err')
+            self.logger.error('dns socket err')
             self._loop.remove(self._sock)
             self._sock.close()
             # TODO when dns server is IPv6
@@ -422,7 +444,7 @@ class DNSResolver(object):
         else:
             data, addr = sock.recvfrom(1024)
             if addr not in self._servers:
-                logging.warn('received a packet other than our dns')
+                self.logger.warn('received a packet other than our dns')
                 return
             self._handle_data(data)
 
@@ -444,7 +466,7 @@ class DNSResolver(object):
     def _send_req(self, hostname, qtype):
         req = build_request(hostname, qtype)
         for server in self._servers:
-            logging.debug('resolving %s with type %d using server %s',
+            self.logger.debug('resolving %s with type %d using server %s',
                           hostname, qtype, server)
             self._sock.sendto(req, server)
 
@@ -456,11 +478,11 @@ class DNSResolver(object):
         elif common.is_ip(hostname):
             callback((hostname, hostname), None)
         elif hostname in self._hosts:
-            logging.debug('hit hosts: %s', hostname)
+            self.logger.debug('hit hosts: %s', hostname)
             ip = self._hosts[hostname]
             callback((hostname, ip), None)
         elif hostname in self._cache:
-            logging.debug('hit cache: %s', hostname)
+            self.logger.debug('hit cache: %s', hostname)
             ip = self._cache[hostname]
             callback((hostname, ip), None)
         else:
@@ -472,7 +494,7 @@ class DNSResolver(object):
                                        socket.SOCK_DGRAM, socket.SOL_UDP)
                 if addrs:
                     af, socktype, proto, canonname, sa = addrs[0]
-                    logging.debug('DNS resolve %s %s' % (hostname, sa[0]) )
+                    self.logger.debug('DNS resolve %s %s' % (hostname, sa[0]) )
                     self._cache[hostname] = sa[0]
                     callback((hostname, sa[0]), None)
                     return

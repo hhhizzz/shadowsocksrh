@@ -27,6 +27,7 @@ import logging
 from shadowsocks import eventloop
 import server_pool
 from config import Config
+from configloader import get_config
 
 
 class ServerMgr(object):
@@ -40,6 +41,13 @@ class ServerMgr(object):
         self._last_time = time.time()
         self._sock = None
         self._servers = None
+        self.logger = logging.getLogger(__name__)
+        if get_config().debug:
+            self.logger.setLevel(logging.DEBUG)
+        fh = logging.FileHandler('log.txt', mode='a', encoding=None, delay=False)
+        formater = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s')
+        fh.setFormatter(formater)
+        self.logger.addHandler(fh)
 
     def add_to_loop(self, loop):
         if self._loop:
@@ -68,7 +76,7 @@ class ServerMgr(object):
         if sock != self._sock:
             return
         if event & eventloop.POLL_ERR:
-            logging.error('mgr socket err')
+            self.logger.error('mgr socket err')
             self._loop.remove(self._sock)
             self._sock.close()
             # TODO when dns server is IPv6

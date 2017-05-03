@@ -15,10 +15,12 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-import time
-import sys
 import threading
 import os
+import logging.config
+import logging
+
+
 
 if __name__ == '__main__':
     import inspect
@@ -44,6 +46,12 @@ class MainThread(threading.Thread):
 
 def main():
     shell.check_python()
+    # 设置logging
+    logging.basicConfig(level = logging.DEBUG,
+             format = '%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
+                      datefmt = '%a, %d %b %Y %H:%M:%S',
+                                filename = 'log.txt',
+                                           filemode = 'w')
 
     thread = MainThread(db_transfer.DbTransfer)
 

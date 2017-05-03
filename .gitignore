@@ -1,4 +1,5 @@
 *.py[co]
+log.txt
 
 # Packages
 *.egg
@@ -32,6 +33,5 @@ htmlcov
 
 # Ignore user config
 user-config.json
-userapiconfig.py
 usermysql.json
 

@@ -26,9 +26,16 @@ class DbTransfer(object):
         self.pull_ok = False  # 记录是否已经拉出过数据
         self.mu_ports = {}
         self.user_pass = {}  # 记录更新此用户流量时被跳过多少次
+        self.logger = logging.getLogger(__name__)
+        if get_config().debug:
+            self.logger.setLevel(logging.DEBUG)
+        fh = logging.FileHandler('log.txt', mode='a', encoding=None, delay=False)
+        formater = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s')
+        fh.setFormatter(formater)
+        self.logger.addHandler(fh)
 
     def update_all_user(self, dt_transfer):
-        logging.info('update_all_user')
+        self.logger.debug('update_all_user')
         update_transfer = {}
 
         query_head = 'UPDATE user'
@@ -52,7 +59,7 @@ class DbTransfer(object):
             for user in self.users:
                 if user['port'] == id:
                     traffic = 'the user '+user['username']+'('+str(user['port'])+') use '+self.traffic_format(transfer[0] + transfer[1])
-                    logging.info(traffic)
+                    self.logger.info(traffic)
                     break
 
         return update_transfer
@@ -61,7 +68,7 @@ class DbTransfer(object):
         '''
         :return: 获得用户信息
         '''
-        logging.info('pull_db_all_user')
+        self.logger.debug('pull_db_all_user')
         # 测试用的两个用户信息
         rows = [{'username':'yzzjjyy1','enable': 1, 'd': 8888719L, 'passwd': u'gfzC8h', 'transfer_enable': 5467275264L,
                  'u': 117218L, 'port': 1025L},
@@ -69,13 +76,13 @@ class DbTransfer(object):
                  'port': 1026L}]
 
         if not rows:
-            logging.warn('no user in db')
+            self.logger.warn('no user in db')
 
         self.users = rows
         return rows
 
     def push_db_all_user(self):
-        logging.info('push_db_all_user')
+        self.logger.debug('push_db_all_user')
         if self.pull_ok is False:
             return
         # 更新用户流量到数据库
@@ -126,7 +133,7 @@ class DbTransfer(object):
         self.force_update_transfer = set()
 
     def del_server_out_of_bound_safe(self, last_rows, rows):
-        logging.info('del_server_out_of_bound_safe')
+        self.logger.debug('del_server_out_of_bound_safe')
         # 停止超流量的服务
         # 启动没超流量的服务
         cur_servers = {}
@@ -159,12 +166,12 @@ class DbTransfer(object):
                     try:
                         cfg[name] = cfg[name].encode('utf-8')
                     except Exception as e:
-                        logging.warning('encode cfg key "%s" fail, val "%s"' % (name, cfg[name]))
+                        self.logger.warning('encode cfg key "%s" fail, val "%s"' % (name, cfg[name]))
 
             if port not in cur_servers:
                 cur_servers[port] = passwd
             else:
-                logging.error('more than one user use the same port [%s]' % (port,))
+                self.logger.error('more than one user use the same port [%s]' % (port,))
                 continue
 
             if allow:
@@ -192,7 +199,7 @@ class DbTransfer(object):
             if port in mu_servers:
                 if ServerPool.get_instance().server_is_run(port) > 0:
                     if cfgchange:
-                        logging.info('db stop server at port [%s] reason: config changed: %s' % (port, cfg))
+                        self.logger.info('db stop server at port [%s] reason: config changed: %s' % (port, cfg))
                         ServerPool.get_instance().cb_del_server(port)
                         self.force_update_transfer.add(port)
                         new_servers[port] = (passwd, cfg)
@@ -202,12 +209,12 @@ class DbTransfer(object):
                 config = shell.get_config(False)
                 if ServerPool.get_instance().server_is_run(port) > 0:
                     if config['additional_ports_only'] or not allow:
-                        logging.info('db stop server at port [%s]' % (port,))
+                        self.logger.info('db stop server at port [%s]' % (port,))
                         ServerPool.get_instance().cb_del_server(port)
                         self.force_update_transfer.add(port)
                     else:
                         if cfgchange:
-                            logging.info('db stop server at port [%s] reason: config changed: %s' % (port, cfg))
+                            self.logger.info('db stop server at port [%s] reason: config changed: %s' % (port, cfg))
                             ServerPool.get_instance().cb_del_server(port)
                             self.force_update_transfer.add(port)
                             new_servers[port] = (passwd, cfg)
@@ -221,7 +228,7 @@ class DbTransfer(object):
             if row['port'] in cur_servers:
                 pass
             else:
-                logging.info('db stop server at port [%s] reason: port not exist' % (row['port']))
+                self.logger.info('db stop server at port [%s] reason: port not exist' % (row['port']))
                 ServerPool.get_instance().cb_del_server(row['port'])
                 self.clear_cache(row['port'])
                 if row['port'] in self.port_uid_table:
@@ -234,7 +241,7 @@ class DbTransfer(object):
                 passwd, cfg = new_servers[port]
                 self.new_server(port, passwd, cfg)
 
-        logging.debug('db allow users %s \nmu_servers %s' % (allow_users, mu_servers))
+        self.logger.debug('db allow users %s \nmu_servers %s' % (allow_users, mu_servers))
         for port in mu_servers:
             ServerPool.get_instance().update_mu_users(port, allow_users)
 
@@ -249,7 +256,7 @@ class DbTransfer(object):
         protocol = cfg.get('protocol', ServerPool.get_instance().config.get('protocol', 'origin'))
         method = cfg.get('method', ServerPool.get_instance().config.get('method', 'None'))
         obfs = cfg.get('obfs', ServerPool.get_instance().config.get('obfs', 'plain'))
-        logging.info('db start server at port [%s] pass [%s] protocol [%s] method [%s] obfs [%s]' % (
+        self.logger.info('db start server at port [%s] pass [%s] protocol [%s] method [%s] obfs [%s]' % (
             port, passwd, protocol, method, obfs))
         ServerPool.get_instance().new_server(port, cfg)
 
@@ -276,7 +283,8 @@ class DbTransfer(object):
         
         线程的入口函数
         '''
-        logging.info('thread_db')
+
+        logging.debug('thread_db')
         import socket
         global db_instance
         timeout = 60
@@ -288,7 +296,7 @@ class DbTransfer(object):
 
         try:
             import resource
-            logging.info(
+            self.logger.info(
                 'current process RLIMIT_NOFILE resource: soft %d hard %d' % resource.getrlimit(resource.RLIMIT_NOFILE))
         except:
             pass
@@ -296,7 +304,6 @@ class DbTransfer(object):
         try:
             while True:
                 load_config()
-                logging.info('while True')
                 try:
                     db_instance.push_db_all_user()
                     if rows:
@@ -316,8 +323,8 @@ class DbTransfer(object):
                     last_rows = rows
                 except Exception as e:
                     trace = traceback.format_exc()
-                    logging.error(trace)
-                # logging.warn('db thread except:%s' % e)
+                    self.logger.error(trace)
+                # self.logger.warn('db thread except:%s' % e)
                 if db_instance.event.wait(get_config().UPDATE_TIME) or not ServerPool.get_instance().thread.is_alive():
                     break
         except KeyboardInterrupt as e:
