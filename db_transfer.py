@@ -51,7 +51,7 @@ class DbTransfer(object):
 
             for user in self.users:
                 if user['port'] == id:
-                    traffic = 'the user '+user['username']+'('+user['port']+') use '+self.traffic_format(transfer[0] + transfer[1])
+                    traffic = 'the user '+user['username']+'('+str(user['port'])+') use '+self.traffic_format(transfer[0] + transfer[1])
                     logging.info(traffic)
                     break
 
