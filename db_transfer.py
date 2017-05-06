@@ -41,20 +41,21 @@ class DbTransfer(object):
         update_transfer = {}
 
         last_time = time.time()
-
+        data = {'cmd': 2}
+        rows = []
+        traffic = None
         for id in dt_transfer.keys():
             transfer = dt_transfer[id]
             # 小于最低更新流量的先不更新
-            # update_trs = 1024 * (2048 - self.user_pass.get(id, 0) * 64)
-            # if transfer[0] + transfer[1] < update_trs and id not in self.force_update_transfer:
-            #     self.user_pass[id] = self.user_pass.get(id, 0) + 1
-            #     continue
-            # if id in self.user_pass:
-            #     del self.user_pass[id]
+            update_trs = 1024 * (2048 - self.user_pass.get(id, 0) * 64)
+            if transfer[0] + transfer[1] < update_trs and id not in self.force_update_transfer:
+                self.user_pass[id] = self.user_pass.get(id, 0) + 1
+                continue
+            if id in self.user_pass:
+                del self.user_pass[id]
 
-            # update_transfer[id] = transfer
+            update_transfer[id] = transfer
 
-            rows = []
             for user in self.users:
                 if user['port'] == id:
                     row = {}
@@ -66,14 +67,29 @@ class DbTransfer(object):
                     row['used'] = self.traffic_format(transfer[0] + transfer[1])
                     rows.append(row)
                     break
-
-            rows_json = json.dumps(rows)
-            self.logger.debug("send a rows" + rows_json)
+        try:
+            data['users'] = rows
+            data_json = json.dumps(data)
+            self.logger.debug("send data" + data_json)
             url = get_config().SERVER_ADDRESS
-            # req = urllib2.Request(url)
-            # response = urllib2.urlopen(req,rows_json)
+            req = urllib2.Request(url)
+            response = urllib2.urlopen(req, data_json)
+            get_data = json.loads(response.read())
             self.logger.info(traffic)
-            self.logger.debug(rows_json)
+            self.logger.debug("get data" + str(get_data))
+            if get_data['cmd'] == 3:
+                mu = get_data['mu']
+                for port in mu:
+                    for user in self.users:
+                        if user['port'] == port:
+                            user['enable']=0
+                            break
+
+
+        except:
+            raise
+            self.logger.error('error, cannot connect to the server')
+            exit()
         return update_transfer
 
     def pull_db_all_user(self):
@@ -84,18 +100,28 @@ class DbTransfer(object):
         '''
 
         self.logger.debug('pull_db_all_user')
+        if self.users:
+            return self.users
+
         url = get_config().SERVER_ADDRESS
-        rows =[]
+        rows = []
         # 测试用的两个用户信息
         try:
+            cmd = {'cmd': 1}
+            cmd_json = json.dumps(cmd)
             req = urllib2.Request(url)
-            response = urllib2.urlopen(req)
-            data = response.read()
-            rows = json.loads(data)
-            self.logger.info('get user from %s' % url)
-            self.logger.info('the users are %s' % data)
+            response = urllib2.urlopen(req, cmd_json)
+            data_json = response.read()
+            data = json.loads(data_json)
+            if data['cmd'] == 1:
+                rows = data['users']
+                self.logger.info('get user from %s' % url)
+                self.logger.info('the users are %s' % data)
+            else:
+                raise NameError
         except:
-            self.logger.error('the return json is not right')
+            self.logger.error('cannot handle the user information, check the Internet')
+            exit()
 
         if not rows:
             self.logger.warn('no user in return')
@@ -328,6 +354,7 @@ class DbTransfer(object):
                 load_config()
                 try:
                     db_instance.push_db_all_user()
+                    rows = db_instance.pull_db_all_user()
                     if rows:
                         db_instance.pull_ok = True
                         config = shell.get_config(False)
