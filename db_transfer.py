@@ -58,7 +58,8 @@ class DbTransfer(object):
 
             for user in self.users:
                 if user['port'] == id:
-                    traffic = 'the user '+user['username']+'('+str(user['port'])+') use '+self.traffic_format(transfer[0] + transfer[1])
+                    traffic = 'the user ' + user['username'] + '(' + str(user['port']) + ') use ' + self.traffic_format(
+                        transfer[0] + transfer[1])
                     self.logger.info(traffic)
                     break
 
@@ -70,10 +71,12 @@ class DbTransfer(object):
         '''
         self.logger.debug('pull_db_all_user')
         # 测试用的两个用户信息
-        rows = [{'username':'yzzjjyy1','enable': 1, 'd': 8888719L, 'passwd': u'gfzC8h', 'transfer_enable': 5467275264L,
-                 'u': 117218L, 'port': 1025L},
-                {'username':'yzzjjyy2','enable': 1, 'd': 2112637L, 'passwd': u'b5QiRt', 'transfer_enable': 5368709120L, 'u': 8752L,
-                 'port': 1026L}]
+        rows = [
+            {'username': 'yzzjjyy1', 'enable': 1, 'd': 8888719L, 'passwd': u'gfzC8h', 'transfer_enable': 5467275264L,
+             'u': 117218L, 'port': 1025L},
+            {'username': 'yzzjjyy2', 'enable': 1, 'd': 2112637L, 'passwd': u'b5QiRt', 'transfer_enable': 5368709120L,
+             'u': 8752L,
+             'port': 1026L}]
 
         if not rows:
             self.logger.warn('no user in db')

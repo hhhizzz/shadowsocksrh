@@ -28,6 +28,7 @@ from configloader import get_config
 if __name__ == '__main__':
     import sys
     import inspect
+
     file_path = os.path.dirname(os.path.realpath(inspect.getfile(inspect.currentframe())))
     sys.path.insert(0, os.path.join(file_path, '../'))
     logger = logging.getLogger(__name__)
@@ -39,7 +40,6 @@ if __name__ == '__main__':
     logger.addHandler(fh)
 
 from shadowsocks import common, lru_cache, eventloop, shell
-
 
 CACHE_SWEEP_INTERVAL = 30
 
@@ -85,6 +85,7 @@ QTYPE_CNAME = 5
 QTYPE_NS = 2
 QCLASS_IN = 1
 
+
 def detect_ipv6_supprot():
     if 'has_ipv6' in dir(socket):
         try:
@@ -97,7 +98,9 @@ def detect_ipv6_supprot():
     print('IPv6 not support')
     return False
 
+
 IPV6_CONNECTION_SUPPORT = detect_ipv6_supprot()
+
 
 def build_address(address):
     address = address.strip(b'.')
@@ -183,7 +186,7 @@ def parse_record(data, offset, question=False):
         )
         ip = parse_ip(record_type, data, record_rdlength, offset + nlen + 10)
         return nlen + 10 + record_rdlength, \
-            (name, ip, record_type, record_class, record_ttl)
+               (name, ip, record_type, record_class, record_ttl)
     else:
         record_type, record_class = struct.unpack(
             '!HH', data[offset + nlen:offset + nlen + 4]
@@ -217,7 +220,7 @@ def parse_response(data):
             if not header:
                 return None
             res_id, res_qr, res_tc, res_ra, res_rcode, res_qdcount, \
-                res_ancount, res_nscount, res_arcount = header
+            res_ancount, res_nscount, res_arcount = header
 
             qds = []
             ans = []
@@ -274,7 +277,6 @@ STATUS_IPV6 = 1
 
 
 class DNSResolver(object):
-
     def __init__(self):
         self._loop = None
         self._hosts = {}
@@ -397,7 +399,7 @@ class DNSResolver(object):
             ip = None
             for answer in response.answers:
                 if answer[1] in (QTYPE_A, QTYPE_AAAA) and \
-                        answer[2] == QCLASS_IN:
+                                answer[2] == QCLASS_IN:
                     ip = answer[0]
                     break
             if IPV6_CONNECTION_SUPPORT:
@@ -467,7 +469,7 @@ class DNSResolver(object):
         req = build_request(hostname, qtype)
         for server in self._servers:
             self.logger.debug('resolving %s with type %d using server %s',
-                          hostname, qtype, server)
+                              hostname, qtype, server)
             self._sock.sendto(req, server)
 
     def resolve(self, hostname, callback):
@@ -491,10 +493,10 @@ class DNSResolver(object):
                 return
             if False:
                 addrs = socket.getaddrinfo(hostname, 0, 0,
-                                       socket.SOCK_DGRAM, socket.SOL_UDP)
+                                           socket.SOCK_DGRAM, socket.SOL_UDP)
                 if addrs:
                     af, socktype, proto, canonname, sa = addrs[0]
-                    self.logger.debug('DNS resolve %s %s' % (hostname, sa[0]) )
+                    self.logger.debug('DNS resolve %s %s' % (hostname, sa[0]))
                     self._cache[hostname] = sa[0]
                     callback((hostname, sa[0]), None)
                     return
@@ -544,10 +546,11 @@ def test():
             if counter == 9:
                 dns_resolver.close()
                 loop.stop()
+
         a_callback = callback
         return a_callback
 
-    assert(make_callback() != make_callback())
+    assert (make_callback() != make_callback())
 
     dns_resolver.resolve(b'google.com', make_callback())
     dns_resolver.resolve('google.com', make_callback())
@@ -572,4 +575,3 @@ def test():
 
 if __name__ == '__main__':
     test()
-
