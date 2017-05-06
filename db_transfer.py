@@ -85,23 +85,17 @@ class DbTransfer(object):
 
         self.logger.debug('pull_db_all_user')
         url = get_config().SERVER_ADDRESS
-
+        rows =[]
         # 测试用的两个用户信息
-        # req = urllib2.Request(url)
-        # response = urllib2.urlopen(req)
-        # data = response.read()
-        rows = [
-            {'username': 'yzzjjyy1', 'enable': 1, 'd': 8888719L, 'passwd': u'gfzC8h', 'transfer_enable': 5467275264L,
-             'u': 117218L, 'port': 1025L},
-            {'username': 'yzzjjyy2', 'enable': 1, 'd': 2112637L, 'passwd': u'b5QiRt', 'transfer_enable': 5368709120L,
-             'u': 8752L,
-             'port': 1026L}]
-        # try:
-        #     rows = json.loads(data)
-        #     self.logger.info('get user from %s' % url)
-        #     self.logger.info('the users are %s' % data)
-        # except:
-        #     self.logger.error('the return json is not right')
+        try:
+            req = urllib2.Request(url)
+            response = urllib2.urlopen(req)
+            data = response.read()
+            rows = json.loads(data)
+            self.logger.info('get user from %s' % url)
+            self.logger.info('the users are %s' % data)
+        except:
+            self.logger.error('the return json is not right')
 
         if not rows:
             self.logger.warn('no user in return')
