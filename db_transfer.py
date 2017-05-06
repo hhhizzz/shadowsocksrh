@@ -1,8 +1,10 @@
 ﻿#!/usr/bin/python
 # -*- coding: UTF-8 -*-
-
+import json
 import logging
 import time
+import urllib2
+
 from server_pool import ServerPool
 import traceback
 from shadowsocks import common, shell, lru_cache, obfs
@@ -38,48 +40,66 @@ class DbTransfer(object):
         self.logger.debug('update_all_user')
         update_transfer = {}
 
-        query_head = 'UPDATE user'
-        query_sub_when = ''
-        query_sub_when2 = ''
-        query_sub_in = None
         last_time = time.time()
 
         for id in dt_transfer.keys():
             transfer = dt_transfer[id]
             # 小于最低更新流量的先不更新
-            update_trs = 1024 * (2048 - self.user_pass.get(id, 0) * 64)
-            if transfer[0] + transfer[1] < update_trs and id not in self.force_update_transfer:
-                self.user_pass[id] = self.user_pass.get(id, 0) + 1
-                continue
-            if id in self.user_pass:
-                del self.user_pass[id]
+            # update_trs = 1024 * (2048 - self.user_pass.get(id, 0) * 64)
+            # if transfer[0] + transfer[1] < update_trs and id not in self.force_update_transfer:
+            #     self.user_pass[id] = self.user_pass.get(id, 0) + 1
+            #     continue
+            # if id in self.user_pass:
+            #     del self.user_pass[id]
 
-            update_transfer[id] = transfer
+            # update_transfer[id] = transfer
 
+            rows = []
             for user in self.users:
                 if user['port'] == id:
+                    row = {}
                     traffic = 'the user ' + user['username'] + '(' + str(user['port']) + ') use ' + self.traffic_format(
                         transfer[0] + transfer[1])
-                    self.logger.info(traffic)
+
+                    row['username'] = user['username']
+                    row['port'] = user['port']
+                    row['used'] = self.traffic_format(transfer[0] + transfer[1])
+                    rows.append(row)
                     break
 
+            rows_json = json.dumps(rows)
+            self.logger.debug("send a rows"+rows_json)
+            url = get_config().SERVER_ADDRESS
+            # req = urllib2.Request(url)
+            # response = urllib2.urlopen(req,rows_json)
+            self.logger.info(traffic)
+            self.logger.debug(rows_json)
         return update_transfer
 
     def pull_db_all_user(self):
         '''
+        
         :return: 获得用户信息
+        
         '''
+
         self.logger.debug('pull_db_all_user')
+        url = get_config().SERVER_ADDRESS
+
         # 测试用的两个用户信息
-        rows = [
-            {'username': 'yzzjjyy1', 'enable': 1, 'd': 8888719L, 'passwd': u'gfzC8h', 'transfer_enable': 5467275264L,
-             'u': 117218L, 'port': 1025L},
-            {'username': 'yzzjjyy2', 'enable': 1, 'd': 2112637L, 'passwd': u'b5QiRt', 'transfer_enable': 5368709120L,
-             'u': 8752L,
-             'port': 1026L}]
+        req = urllib2.Request(url)
+        response = urllib2.urlopen(req)
+        data = response.read()
+        rows = []
+        try:
+            rows = json.loads(data)
+            self.logger.info('get user from %s' % url)
+            self.logger.info('the users are %s' % data)
+        except:
+            self.logger.error('the return json is not right')
 
         if not rows:
-            self.logger.warn('no user in db')
+            self.logger.warn('no user in return')
 
         self.users = rows
         return rows
