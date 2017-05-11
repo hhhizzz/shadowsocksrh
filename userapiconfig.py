@@ -3,7 +3,7 @@
 UPDATE_TIME = 10
 
 # 用于发送http的地址
-SERVER_ADDRESS = r'http://localhost:8088'
+SERVER_ADDRESS = r'http://47.52.6.38/Api/Index/fetchUser?id=37'
 
 # 是否输出调试信息
 debug = True

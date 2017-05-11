@@ -85,7 +85,7 @@ class DbTransfer(object):
 
         self.logger.debug('pull_db_all_user')
         url = get_config().SERVER_ADDRESS
-        rows =[]
+        rows = []
         # 测试用的两个用户信息
         try:
             req = urllib2.Request(url)
@@ -100,8 +100,18 @@ class DbTransfer(object):
         if not rows:
             self.logger.warn('no user in return')
 
-        self.users = rows
-        return rows
+        for row in rows:
+            user = {}
+            user['username'] = row['uid']
+            user['port'] = int(row['port'])
+            user['enable'] = 1
+            user['passwd'] = '123456'
+            user['transfer_enable'] = 5000000000
+            user['u'] = 0
+            user['d'] = 0
+            self.users.append(user)
+
+        return self.users
 
     def push_db_all_user(self):
         self.logger.debug('push_db_all_user')
