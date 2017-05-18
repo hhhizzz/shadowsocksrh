@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 import json
 import logging
+import ssl
 import time
 import urllib
 import urllib2
@@ -73,8 +74,13 @@ class DbTransfer(object):
             data = urllib.urlencode({'data': rows_json})
             self.logger.debug("send a rows" + rows_json)
             url = get_config().POST_ADDRESS
-            req = urllib2.Request(url)
-            response = urllib2.urlopen(req, data)
+            if not get_config().HTTPS:
+                req = urllib2.Request(url)
+                response = urllib2.urlopen(req, data)
+            else:
+                gcontext = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+                req = urllib2.Request(url)
+                response = urllib2.urlopen(req, data, context=gcontext)
             self.logger.info(response.read())
             self.logger.debug(rows_json)
         return update_transfer
@@ -91,10 +97,17 @@ class DbTransfer(object):
         rows = []
         # 测试用的两个用户信息
         try:
-            req = urllib2.Request(url)
-            response = urllib2.urlopen(req)
-            data = response.read()
-            rows = json.loads(data)
+            if not get_config().HTTPS:
+                req = urllib2.Request(url)
+                response = urllib2.urlopen(req)
+                data = response.read()
+                rows = json.loads(data)
+            else:
+                gcontext = ssl.SSLContext(ssl.PROTOCOL_TLSv1)
+                req = urllib2.Request(url)
+                response = urllib2.urlopen(req, context=gcontext)
+                data = response.read()
+                rows = json.loads(data)
             self.logger.info('get user from %s' % url)
             self.logger.info('the users are %s' % data)
         except:

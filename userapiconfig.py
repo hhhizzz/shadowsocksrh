@@ -2,10 +2,25 @@
 
 UPDATE_TIME = 10
 
-# 用于获取用户的http的地址
-SERVER_ADDRESS = r'http://47.52.6.38/Api/Index/fetchUser?id=39&key=test'
+# 用于获取用户的属性
+ID = 39
 
-POST_ADDRESS = r'http://47.52.6.38/Api/Index/update?id=39&key=test'
+KEY = 'test'
+
+ADDRESS = '47.52.6.38'
+
+HTTPS = False
 
 # 是否输出调试信息
 debug = True
+
+
+#****************************************************************************#
+
+if HTTPS:
+    SERVER_ADDRESS = r'https://' + ADDRESS + r'/Api/Index/fetchUser' + '?id=' + ID + "&key=" + KEY
+    POST_ADDRESS = r'https://' + ADDRESS + r'/Api/Index/update' + '?id=' + ID + "&key=" + KEY
+else:
+    SERVER_ADDRESS = r'http://' + ADDRESS + r'/Api/Index/fetchUser' + '?id=' + ID + "&key=" + KEY
+    POST_ADDRESS = r'http://' + ADDRESS + r'/Api/Index/update' + '?id=' + ID + "&key=" + KEY
+
