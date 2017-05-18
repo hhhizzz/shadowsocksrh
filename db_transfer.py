@@ -3,6 +3,7 @@
 import json
 import logging
 import time
+import urllib
 import urllib2
 
 from server_pool import ServerPool
@@ -69,10 +70,11 @@ class DbTransfer(object):
                     break
 
             rows_json = json.dumps(rows)
+            data = urllib.urlencode({'data': rows_json})
             self.logger.debug("send a rows" + rows_json)
             url = get_config().POST_ADDRESS
             req = urllib2.Request(url)
-            response = urllib2.urlopen(req, rows_json)
+            response = urllib2.urlopen(req, data)
             self.logger.info(response.read())
             self.logger.info(traffic)
             self.logger.debug(rows_json)
