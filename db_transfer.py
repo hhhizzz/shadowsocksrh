@@ -62,6 +62,7 @@ class DbTransfer(object):
                         transfer[0] + transfer[1])
                     row['uid'] = user['username']
                     row['port'] = user['port']
+                    row['group'] = user['group']
                     row['u'] = transfer[0]
                     row['d'] = transfer[1]
                     rows.append(row)
