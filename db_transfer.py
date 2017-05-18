@@ -68,15 +68,15 @@ class DbTransfer(object):
                     rows.append(row)
                     self.logger.info(traffic)
                     break
-
-        rows_json = json.dumps(rows)
-        data = urllib.urlencode({'data': rows_json})
-        self.logger.debug("send a rows" + rows_json)
-        url = get_config().POST_ADDRESS
-        req = urllib2.Request(url)
-        response = urllib2.urlopen(req, data)
-        self.logger.info(response.read())
-        self.logger.debug(rows_json)
+        if rows:
+            rows_json = json.dumps(rows)
+            data = urllib.urlencode({'data': rows_json})
+            self.logger.debug("send a rows" + rows_json)
+            url = get_config().POST_ADDRESS
+            req = urllib2.Request(url)
+            response = urllib2.urlopen(req, data)
+            self.logger.info(response.read())
+            self.logger.debug(rows_json)
         return update_transfer
 
     def pull_db_all_user(self):
