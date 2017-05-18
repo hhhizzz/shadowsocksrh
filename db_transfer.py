@@ -42,7 +42,7 @@ class DbTransfer(object):
         update_transfer = {}
 
         last_time = time.time()
-
+        rows = []
         for id in dt_transfer.keys():
             transfer = dt_transfer[id]
             # 小于最低更新流量的先不更新
@@ -55,7 +55,6 @@ class DbTransfer(object):
 
             update_transfer[id] = transfer
 
-            rows = []
             for user in self.users:
                 if user['port'] == id:
                     row = {}
@@ -67,17 +66,17 @@ class DbTransfer(object):
                     row['u'] = transfer[0]
                     row['d'] = transfer[1]
                     rows.append(row)
+                    self.logger.info(traffic)
                     break
 
-            rows_json = json.dumps(rows)
-            data = urllib.urlencode({'data': rows_json})
-            self.logger.debug("send a rows" + rows_json)
-            url = get_config().POST_ADDRESS
-            req = urllib2.Request(url)
-            response = urllib2.urlopen(req, data)
-            self.logger.info(response.read())
-            self.logger.info(traffic)
-            self.logger.debug(rows_json)
+        rows_json = json.dumps(rows)
+        data = urllib.urlencode({'data': rows_json})
+        self.logger.debug("send a rows" + rows_json)
+        url = get_config().POST_ADDRESS
+        req = urllib2.Request(url)
+        response = urllib2.urlopen(req, data)
+        self.logger.info(response.read())
+        self.logger.debug(rows_json)
         return update_transfer
 
     def pull_db_all_user(self):
