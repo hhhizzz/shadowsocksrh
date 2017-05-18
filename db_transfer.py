@@ -60,9 +60,10 @@ class DbTransfer(object):
                     row = {}
                     traffic = 'the user ' + user['username'] + '(' + str(user['port']) + ') use ' + self.traffic_format(
                         transfer[0] + transfer[1])
-
-                    row['username'] = user['username']
+                    row['uid'] = user['username']
                     row['port'] = user['port']
+                    row['u'] = transfer[0]
+                    row['d'] = transfer[1]
                     row['used'] = self.traffic_format(transfer[0] + transfer[1])
                     rows.append(row)
                     break
@@ -70,8 +71,9 @@ class DbTransfer(object):
             rows_json = json.dumps(rows)
             self.logger.debug("send a rows" + rows_json)
             url = get_config().SERVER_ADDRESS
-            # req = urllib2.Request(url)
-            # response = urllib2.urlopen(req,rows_json)
+            req = urllib2.Request(url)
+            response = urllib2.urlopen(req, rows_json)
+            self.logger.info(response)
             self.logger.info(traffic)
             self.logger.debug(rows_json)
         return update_transfer
@@ -105,8 +107,12 @@ class DbTransfer(object):
             user['username'] = row['uid']
             user['port'] = int(row['port'])
             user['enable'] = 1
-            user['passwd'] = '123456'
+            user['method'] = row['method']
+            user['protocol'] = row['protocol']
+            user['passwd'] = row['passwd']
+            user['obfs'] = row['obfs']
             user['transfer_enable'] = 5000000000
+            user['group'] = row['group']
             user['u'] = 0
             user['d'] = 0
             self.users.append(user)
