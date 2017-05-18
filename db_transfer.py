@@ -395,7 +395,6 @@ class DbTransfer(object):
         db_instance = DbTransfer()
         ServerPool.get_instance()
         shell.log_shadowsocks_version()
-
         try:
             import resource
             logging.info(

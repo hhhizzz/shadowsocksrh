@@ -3,7 +3,7 @@
 UPDATE_TIME = 10
 
 # 用于获取用户的属性
-ID = 39
+ID = '39'
 
 KEY = 'test'
 
