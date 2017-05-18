@@ -46,14 +46,14 @@ class DbTransfer(object):
         for id in dt_transfer.keys():
             transfer = dt_transfer[id]
             # 小于最低更新流量的先不更新
-            # update_trs = 1024 * (2048 - self.user_pass.get(id, 0) * 64)
-            # if transfer[0] + transfer[1] < update_trs and id not in self.force_update_transfer:
-            #     self.user_pass[id] = self.user_pass.get(id, 0) + 1
-            #     continue
-            # if id in self.user_pass:
-            #     del self.user_pass[id]
+            update_trs = 1024 * (2048 - self.user_pass.get(id, 0) * 64)
+            if transfer[0] + transfer[1] < update_trs and id not in self.force_update_transfer:
+                self.user_pass[id] = self.user_pass.get(id, 0) + 1
+                continue
+            if id in self.user_pass:
+                del self.user_pass[id]
 
-            # update_transfer[id] = transfer
+            update_transfer[id] = transfer
 
             rows = []
             for user in self.users:
