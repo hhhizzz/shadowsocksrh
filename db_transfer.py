@@ -64,16 +64,15 @@ class DbTransfer(object):
                     row['port'] = user['port']
                     row['u'] = transfer[0]
                     row['d'] = transfer[1]
-                    row['used'] = self.traffic_format(transfer[0] + transfer[1])
                     rows.append(row)
                     break
 
             rows_json = json.dumps(rows)
             self.logger.debug("send a rows" + rows_json)
-            url = get_config().SERVER_ADDRESS
+            url = get_config().POST_ADDRESS
             req = urllib2.Request(url)
             response = urllib2.urlopen(req, rows_json)
-            self.logger.info(response)
+            self.logger.info(response.read())
             self.logger.info(traffic)
             self.logger.debug(rows_json)
         return update_transfer
