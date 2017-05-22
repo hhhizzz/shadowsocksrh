@@ -120,6 +120,7 @@ class DbTransfer(object):
         if not rows:
             self.logger.warn('no user in return')
 
+        users = []
         for row in rows:
             user = {}
             user['username'] = row['uid']
@@ -133,62 +134,13 @@ class DbTransfer(object):
             user['group'] = row['group']
             user['u'] = 0
             user['d'] = 0
-            self.users.append(user)
+            users.append(user)
 
-        return self.users
+        self.users = users
+        return users
 
     def push_db_all_user(self):
         self.logger.debug('push_db_all_user')
-        if self.pull_ok is False:
-            return
-        # 更新用户流量到数据库
-        last_transfer = self.last_update_transfer
-        curr_transfer = ServerPool.get_instance().get_servers_transfer()
-        # 上次和本次的增量
-        dt_transfer = {}
-        for id in self.force_update_transfer:  # 此表中的用户统计上次未计入的流量
-            if id in self.last_get_transfer and id in last_transfer:
-                dt_transfer[id] = [self.last_get_transfer[id][0] - last_transfer[id][0],
-                                   self.last_get_transfer[id][1] - last_transfer[id][1]]
-
-        for id in curr_transfer.keys():
-            if id in self.force_update_transfer or id in self.mu_ports:
-                continue
-            # 算出与上次记录的流量差值，保存于dt_transfer表
-            if id in last_transfer:
-                if curr_transfer[id][0] + curr_transfer[id][1] - last_transfer[id][0] - last_transfer[id][1] <= 0:
-                    continue
-                dt_transfer[id] = [curr_transfer[id][0] - last_transfer[id][0],
-                                   curr_transfer[id][1] - last_transfer[id][1]]
-            else:
-                if curr_transfer[id][0] + curr_transfer[id][1] <= 0:
-                    continue
-                dt_transfer[id] = [curr_transfer[id][0], curr_transfer[id][1]]
-
-            # 有流量的，先记录在线状态
-            if id in self.last_get_transfer:
-                if curr_transfer[id][0] + curr_transfer[id][1] > self.last_get_transfer[id][0] + \
-                        self.last_get_transfer[id][1]:
-                    self.onlineuser_cache[id] = curr_transfer[id][0] + curr_transfer[id][1]
-            else:
-                self.onlineuser_cache[id] = curr_transfer[id][0] + curr_transfer[id][1]
-
-        self.onlineuser_cache.sweep()
-
-        update_transfer = self.update_all_user(dt_transfer)  # 返回有更新的表
-        for id in update_transfer.keys():  # 其增量加在此表
-            if id not in self.force_update_transfer:  # 但排除在force_update_transfer内的
-                last = self.last_update_transfer.get(id, [0, 0])
-                self.last_update_transfer[id] = [last[0] + update_transfer[id][0], last[1] + update_transfer[id][1]]
-        self.last_get_transfer = curr_transfer
-        for id in self.force_update_transfer:
-            if id in self.last_update_transfer:
-                del self.last_update_transfer[id]
-            if id in self.last_get_transfer:
-                del self.last_get_transfer[id]
-        self.force_update_transfer = set()
-
-    def push_db_all_user(self):
         if self.pull_ok is False:
             return
         # 更新用户流量到数据库
