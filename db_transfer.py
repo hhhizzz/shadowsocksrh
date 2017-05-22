@@ -108,10 +108,14 @@ class DbTransfer(object):
                 response = urllib2.urlopen(req, context=gcontext)
                 data = response.read()
                 rows = json.loads(data)
+            if isinstance(rows, dict) and rows['err'] == 1:
+                self.logger.error("the key is incorrect")
+                raise
             self.logger.info('get user from %s' % url)
             self.logger.info('the users are %s' % data)
-        except:
-            self.logger.error('the return json is not right')
+        except Exception:
+            self.logger.error('the return json is not right, please check the key and url')
+            exit(0)
 
         if not rows:
             self.logger.warn('no user in return')
