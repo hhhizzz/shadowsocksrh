@@ -31,6 +31,7 @@ class DbTransfer(object):
         self.mu_ports = {}
         self.user_pass = {}  # 记录更新此用户流量时被跳过多少次
         self.logger = logging.getLogger(__name__)
+        self.failGet = 0 # 记录http get 的失败次数
         if get_config().debug:
             self.logger.setLevel(logging.DEBUG)
         fh = logging.FileHandler('log.txt', mode='a', encoding=None, delay=False)
@@ -87,9 +88,9 @@ class DbTransfer(object):
 
     def pull_db_all_user(self):
         '''
-        
+
         :return: 获得用户信息
-        
+
         '''
 
         self.logger.debug('pull_db_all_user')
@@ -113,30 +114,36 @@ class DbTransfer(object):
                 raise
             self.logger.info('get user from %s' % url)
             self.logger.info('the users are %s' % data)
+            if not rows:
+                self.logger.warn('no user in return')
+
+            users = []
+            for row in rows:
+                user = {}
+                user['username'] = row['uid']
+                user['port'] = int(row['port'])
+                user['enable'] = 1
+                user['method'] = row['method']
+                user['protocol'] = row['protocol']
+                user['passwd'] = row['passwd']
+                user['obfs'] = row['obfs']
+                user['transfer_enable'] = 5000000000
+                user['group'] = row['group']
+                user['u'] = 0
+                user['d'] = 0
+                users.append(user)
+
+            self.users = users
+            self.failGet = 0
         except Exception:
-            self.logger.error('the return json is not right, please check the key and url')
-            exit(0)
+            self.logger.warn('the return json is not right, please check the key and url, %d times left'% get_config().FAIL_TIMES - self.failGet)
+            self.failGet+=1
+            if self.failGet==get_config().FAIL_TIMES:
+                self.logger.error("can't get users in such times, please check the key and url")
+                exit(0)
+            else:
+                users = self.users
 
-        if not rows:
-            self.logger.warn('no user in return')
-
-        users = []
-        for row in rows:
-            user = {}
-            user['username'] = row['uid']
-            user['port'] = int(row['port'])
-            user['enable'] = 1
-            user['method'] = row['method']
-            user['protocol'] = row['protocol']
-            user['passwd'] = row['passwd']
-            user['obfs'] = row['obfs']
-            user['transfer_enable'] = 5000000000
-            user['group'] = row['group']
-            user['u'] = 0
-            user['d'] = 0
-            users.append(user)
-
-        self.users = users
         return users
 
     def push_db_all_user(self):
@@ -338,7 +345,7 @@ class DbTransfer(object):
     def thread_db():
         '''
         :param obj: 就是DbTransfer
-        
+
         线程的入口函数
         '''
 
