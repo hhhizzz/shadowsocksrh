@@ -136,7 +136,7 @@ class DbTransfer(object):
             self.users = users
             self.failGet = 0
         except Exception:
-            self.logger.warn('the return json is not right, please check the key and url, %d times left'% get_config().FAIL_TIMES - self.failGet)
+            self.logger.warn('the return json is not right, please check the key and url, %d times left' % (int(get_config().FAIL_TIMES) - self.failGet))
             self.failGet+=1
             if self.failGet==get_config().FAIL_TIMES:
                 self.logger.error("can't get users in such times, please check the key and url")

@@ -2,7 +2,7 @@
 
 UPDATE_TIME = 10
 
-# http 获取失败重试次数 超过次数便退出程序 
+# http 获取失败重试次数 超过次数便退出程序
 
 FAIL_TIMES = 3
 
