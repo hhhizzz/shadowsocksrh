@@ -27,6 +27,7 @@ class DbTransfer(object):
         self.force_update_transfer = set()  # 强制推入数据库的ID
         self.users = []
         self.onlineuser_cache = lru_cache.LRUCache(timeout=60 * 30)  # 用户在线状态记录
+        self.port_uid_table = {}  # 端口到uid的映射（仅v3以上有用）
         self.pull_ok = False  # 记录是否已经拉出过数据
         self.mu_ports = {}
         self.user_pass = {}  # 记录更新此用户流量时被跳过多少次
