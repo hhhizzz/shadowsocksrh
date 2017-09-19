@@ -2,6 +2,7 @@
 # -*- coding: UTF-8 -*-
 import json
 import logging
+import logging.config
 import ssl
 import time
 import urllib
@@ -33,12 +34,17 @@ class DbTransfer(object):
         self.user_pass = {}  # 记录更新此用户流量时被跳过多少次
         self.logger = logging.getLogger(__name__)
         self.failGet = 0  # 记录http get 的失败次数
+
         if get_config().debug:
             self.logger.setLevel(logging.DEBUG)
         fh = logging.FileHandler('log.txt', mode='a', encoding=None, delay=False)
         formater = logging.Formatter('%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s')
         fh.setFormatter(formater)
         self.logger.addHandler(fh)
+        if get_config().HTTPLOG == True:
+            hh = logging.handlers.HTTPHandler(host="http://" + get_config().SERVER_ADDRESS, url=get_config().LOG_URL,
+                                              method='POST')
+            self.logger.addHandler(hh)
 
     def update_all_user(self, dt_transfer):
         self.logger.debug('update_all_user')

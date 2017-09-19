@@ -19,8 +19,10 @@ ADDRESS = '47.52.6.38'
 
 HTTPS = False
 
+HTTPLOG = True
+
 # 是否输出调试信息
-debug = True
+debug = False
 
 
 #***********************************分割线*****************************************#
@@ -28,8 +30,7 @@ debug = True
 if HTTPS:
     SERVER_ADDRESS = r'https://' + ADDRESS + r'/Api/Index/fetchUser' + '?id=' + ID + "&key=" + KEY
     POST_ADDRESS = r'https://' + ADDRESS + r'/Api/Index/update' + '?id=' + ID + "&key=" + KEY
-    LOG_ADDRESS = r'https://' + ADDRESS + r'/Api/Index/log' + '?id=' + ID + "&key=" + KEY
 else:
     SERVER_ADDRESS = r'http://' + ADDRESS + r'/Api/Index/fetchUser' + '?id=' + ID + "&key=" + KEY
     POST_ADDRESS = r'http://' + ADDRESS + r'/Api/Index/update' + '?id=' + ID + "&key=" + KEY
-    LOG_ADDRESS = r'http://' + ADDRESS + r'/Api/Index/log' + '?id=' + ID + "&key=" + KEY
+LOG_URL = r'/Api/Index/log' + '?id=' + ID + "&key=" + KEY
