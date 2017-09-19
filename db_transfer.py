@@ -27,12 +27,12 @@ class DbTransfer(object):
         self.force_update_transfer = set()  # 强制推入数据库的ID
         self.users = []
         self.onlineuser_cache = lru_cache.LRUCache(timeout=60 * 30)  # 用户在线状态记录
-        self.port_uid_table = {}  # 端口到uid的映射（仅v3以上有用）
+        self.port_uid_table = {}  # 端口到uid的映射
         self.pull_ok = False  # 记录是否已经拉出过数据
         self.mu_ports = {}
         self.user_pass = {}  # 记录更新此用户流量时被跳过多少次
         self.logger = logging.getLogger(__name__)
-        self.failGet = 0 # 记录http get 的失败次数
+        self.failGet = 0  # 记录http get 的失败次数
         if get_config().debug:
             self.logger.setLevel(logging.DEBUG)
         fh = logging.FileHandler('log.txt', mode='a', encoding=None, delay=False)
@@ -96,6 +96,7 @@ class DbTransfer(object):
 
         self.logger.debug('pull_db_all_user')
         url = get_config().SERVER_ADDRESS
+        max_users = get_config().MAX_USERS
         rows = []
         # 测试用的两个用户信息
         try:
@@ -120,26 +121,28 @@ class DbTransfer(object):
 
             users = []
             for row in rows:
-                user = {}
-                user['username'] = row['uid']
-                user['port'] = int(row['port'])
-                user['enable'] = 1
-                user['method'] = row['method']
-                user['protocol'] = row['protocol']
-                user['passwd'] = row['passwd']
-                user['obfs'] = row['obfs']
-                user['transfer_enable'] = 5000000000
-                user['group'] = row['group']
-                user['u'] = 0
-                user['d'] = 0
+                user = {'username': row['uid'],
+                        'port': int(row['port']),
+                        'enable': 1,
+                        'method': row['method'],
+                        'protocol': row['protocol'],
+                        'passwd': row['passwd'],
+                        'obfs': row['obfs'],
+                        'transfer_enable': 5000000000,
+                        'group': row['group'],
+                        'u': 0, 'd': 0}
                 users.append(user)
+                if len(user) > max_users:
+                    self.logger.warning("The number of users is over the limit, some user may be disconnected")
+                    break
 
             self.users = users
             self.failGet = 0
         except Exception:
-            self.logger.warn('the return json is not right, please check the key and url, %d times left' % (int(get_config().FAIL_TIMES) - self.failGet))
-            self.failGet+=1
-            if self.failGet==get_config().FAIL_TIMES:
+            self.logger.warn('the return json is not right, please check the key and url, %d times left' % (
+                int(get_config().FAIL_TIMES) - self.failGet))
+            self.failGet += 1
+            if self.failGet == get_config().FAIL_TIMES:
                 self.logger.error("can't get users in such times, please check the key and url")
                 exit(0)
             else:
